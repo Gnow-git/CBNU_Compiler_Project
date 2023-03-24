@@ -2,18 +2,20 @@
 #include <stdlib.h>	// exit 함수 라이브러리
 
 char lookahead;	// 입력된 문자
+int x, y = 0;	// 좌표 설정
+
 void nexttoken();
 void seq();
-void move(char token);
-
+void position();	// 위치 출력
 
 void main() {
+	printf("입력:");
 	nexttoken();
-	seq();
+	seq();	// 좌표 계산
 	if (lookahead == '$')	// 마지막이 $면
-	{
-		printf("main으로 이동 \n");
-		printf("좌표 출력");
+	{;
+		printf("출력:");
+		position();
 	}
 	else
 		printf("error\n");
@@ -21,7 +23,6 @@ void main() {
 
 void match(char token) {
 	if (lookahead == token) {
-		move(token);	// 토큰 전달
 		nexttoken();
 	}
 	else {
@@ -32,7 +33,6 @@ void match(char token) {
 
 void nexttoken() {
 	char c;
-
 	while (1) {
 		c = getchar();	// 문자 입력
 		if (c == EOF) {	// ctrl + z할 경우
@@ -44,39 +44,34 @@ void nexttoken() {
 		lookahead = c;
 
 
-		if (lookahead == '$') {	// $입력시 main으로 이동
-			printf("end");
+		if (c == '$') {	// $입력시 main으로 이동
+			lookahead = '$';
 			return;
 		}
-		else {
-			match(lookahead);	// getchar로 받아온 것에서 문자 하나씩 match로 넘어감
-		}
+		seq();	// 좌표 계산
 		
-	}
-}
-
-void move(char token) {	// 이동 처리 함수
-	switch (token) {
-		case 'b' :
-			printf("현 위치(0,0)\n");
-			break;
-		case 'e':
-			printf("동 쪽(1,0)\n");
-			break;
-		case 'n':
-			printf("북 쪽(0,1)\n");
-			break;
-		case 'w':
-			printf("서 쪽(-1,0)\n");
-			break;
-		case 's':
-			printf("남 쪽(0,-1)\n");
-			break;
 	}
 }
 
 void seq() {// 좌표 계산
 	// nexttoken에서 저장된 배열을 보면서 좌표 계산하기
-
+	switch (lookahead) {
+	case 'e':
+		x = x + 1;
+		break;
+	case 'n':
+		y = y + 1;
+		break;
+	case 'w':
+		x = x - 1;
+		break;
+	case 's':
+		y = y - 1;
+		break;
+	}
 	return;	// match로 이동
+}
+
+void position() {	// 좌표 출력
+	printf("(%d,%d)", x, y);
 }
