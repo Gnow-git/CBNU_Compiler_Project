@@ -55,21 +55,21 @@ int		insertsym(char *);
 program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
 		;
 
-stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
-		|	stmt			{$$=MakeListTree(NULL, $1);}
-		| 	error STMTEND	{ errorcnt++; yyerrok;}
+stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}		// 초기 생성 이후
+		|	stmt			{$$=MakeListTree(NULL, $1);}	// 초기 생성 시
+		| 	error STMTEND	{ errorcnt++; yyerrok;}	// 원하는 stmt가 안나올 경우
 		;
 
-stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
+stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}	// $1을 token으로 -> 나중에 lvalue를 사용해야하기 때문
 		;
 
-expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
-		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
+expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }	// 더하기 $1 =expr, $3 = term
+		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }	// OPTree로 연결 $1 =expr, $3 = term
 		|	term
 		;
 
 
-term	:	ID		{ /* ID node is created in lex */ }
+term	:	ID		{ /* ID node is created in lex */ } //$$=$1
 		|	NUM		{ /* NUM node is created in lex */ }
 		;
 
@@ -105,14 +105,14 @@ char *s;
 }
 
 
-Node * MakeOPTree(int op, Node* operand1, Node* operand2)
+Node * MakeOPTree(int op, Node* operand1, Node* operand2)	// 토큰번호(Add,Sub), 
 {
 Node * newnode;
 
-	newnode = (Node *)malloc(sizeof (Node));
+	newnode = (Node *)malloc(sizeof (Node));	// newnode가 할당
 	newnode->token = op;
 	newnode->tokenval = op;
-	newnode->son = operand1;
+	newnode->son = operand1;	// 구조 노트정리 확인
 	newnode->brother = NULL;
 	operand1->brother = operand2;
 	return newnode;
@@ -154,7 +154,7 @@ void codegen(Node * root)
 	DFSTree(root);
 }
 
-void DFSTree(Node * n)
+void DFSTree(Node * n)	// inorder
 {
 	if (n==NULL) return;
 	DFSTree(n->son);
@@ -173,7 +173,7 @@ void prtcode(int token, int val)
 		fprintf(fp, "LVALUE %s\n", symtbl[val]);
 		break;
 	case NUM:
-		fprintf(fp, "PUSH %d\n", val);
+		fprintf(fp, "PUSH %d\n", val);	// symtbl이 아닌 실제 값
 		break;
 	case ADD:
 		fprintf(fp, "+\n");

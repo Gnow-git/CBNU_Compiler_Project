@@ -110,7 +110,7 @@ void instr(char lookahead) {	// 좌표 계산 함수
 	switch (lookahead) {	// 명령에 따라 좌표 계산
 
 	case 'b':
-		x, y = 0;	// 현 위치 설정
+		x, y = 0;	// begin(현 위치 설정)
 		break;
 
 	case 'e':		// east(오른쪽)
