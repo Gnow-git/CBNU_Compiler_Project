@@ -29,7 +29,7 @@ id		{letter}({letter}|{digit})*
 Ω√¿€		{return(START); }
 ≥°		{return(END); }
 {id}	{temp=insertsym(yytext); yylval=MakeNode(ID, temp); return(ID);}
-{digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
+{digit}+		{sscanf_s(yytext, "%d", &temp, sizeof(temp)); yylval=MakeNode(NUM, temp); return(NUM);}
 .		{printf("invalid token %s\n", yytext); }
 %%
 
@@ -42,7 +42,7 @@ int i;
 		if(strcmp(s, symtbl[i])==0) return(i);
 		}
 	if (i<MAXSYM-1) {
-		strcpy(symtbl[maxsym],s);
+		strcpy_s(symtbl[maxsym], sizeof(symtbl) ,s);
 		maxsym++;
 		return(maxsym-1);
 		}
