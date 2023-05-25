@@ -22,14 +22,16 @@ id		{letter}({letter}|{digit})*
 %%
 {ws}	{/* do nothing */}
 {nl}	{lineno++; }
-더하기	{return(ADD); }
+\+		{return(ADD); }
+더하기		{return(ADD); }
+\-		{return(SUB); }
 빼기		{return(SUB); }
 :=		{return(ASSGN); }
 ;		{return(STMTEND); }
 시작		{return(START); }
 끝		{return(END); }
 {id}	{temp=insertsym(yytext); yylval=MakeNode(ID, temp); return(ID);}
-{digit}+		{sscanf_s(yytext, "%d", &temp, sizeof(temp)); yylval=MakeNode(NUM, temp); return(NUM);}
+-?{digit}+		{sscanf_s(yytext, "%d", &temp, sizeof(temp)); yylval=MakeNode(NUM, temp); return(NUM);}
 .		{printf("invalid token %s\n", yytext); }
 %%
 
@@ -42,7 +44,7 @@ int i;
 		if(strcmp(s, symtbl[i])==0) return(i);
 		}
 	if (i<MAXSYM-1) {
-		strcpy_s(symtbl[maxsym], sizeof(symtbl) ,s);
+		strcpy_s(symtbl[maxsym], sizeof(symtbl), s);
 		maxsym++;
 		return(maxsym-1);
 		}
