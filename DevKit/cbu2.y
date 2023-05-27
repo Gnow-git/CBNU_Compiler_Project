@@ -1,3 +1,4 @@
+/* 선언 부분 */
 %{
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
@@ -40,19 +41,20 @@ void codegen(Node* );
 void prtcode(int, int);
 
 void	dwgen();
-int	gentemp();
+int		gentemp();
 void	assgnstmt(int, int);
 void	numassgn(int, int);
 void	addstmt(int, int, int);
 void	substmt(int, int, int);
-int		insertsym(char *);
+int		insertsym();
 %}
 
-%token	ADD SUB ASSGN ID NUM STMTEND START END ID2
-
+%token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2 IF ELSE LPAREN RPAREN LBRACE RBRACE LT GT LTE GTE EQ NEQ
 
 
 %%
+
+/* 생성 규칙 부분 */
 program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
 		;
 
@@ -62,19 +64,27 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
+		|   IF LPAREN expr LT expr RPAREN LBRACE stmt_list RBRACE {$$ = MakeOPTree(IF, MakeOPTree(LT, $3, $5), $8);}
 		;
 
-expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
-		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
+
+
+expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }	/* 더하기 */
+		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }	/* 빼기 */
+		|	expr MUL term	{ $$=MakeOPTree(MUL, $1, $3); }	/* 곱하기 */
+		|	expr DIV term	{ $$=MakeOPTree(DIV, $1, $3); } /* 나누기 */
 		|	term
 		;
 
-
 term	:	ID		{ /* ID node is created in lex */ }
 		|	NUM		{ /* NUM node is created in lex */ }
+		|	LPAREN expr RPAREN	{ $$ = $2; } /* 괄호 표현식 */
 		;
+
+
 %%
 
+/* 사용자 프로그램 부분 */
 int main(int argc, char *argv[]) 
 {
 	printf("\nsample CBU compiler v2.0\n");
@@ -131,8 +141,8 @@ Node * newnode;
 
 Node * MakeListTree(Node* operand1, Node* operand2)
 {
-Node * newnode;
-Node * node;
+	Node * newnode;
+	Node * node;
 
 	if (operand1 == NULL){
 		newnode = (Node *)malloc(sizeof (Node));
@@ -181,10 +191,23 @@ void prtcode(int token, int val)
 	case SUB:
 		fprintf(fp, "-\n");
 		break;
+	case MUL:
+		fprintf(fp, "*\n");
+		break;
+	case DIV:
+		fprintf(fp, "/\n");
+		break;
 	case ASSGN:
 		fprintf(fp, ":=\n");
 		break;
+	case IF:
+		fprintf(fp, "IF:\n");
+		break;
+	case ELSE:
+		fprintf(fp, "ELSE:\n");
+		break;
 	case STMTLIST:
+		break;
 	default:
 		break;
 	};
@@ -206,7 +229,7 @@ char tempsym[MAXSYMLEN]="TTCBU";
 */
 void dwgen()
 {
-int i;
+	int i;
 	fprintf(fp, "HALT\n");
 	fprintf(fp, "$ -- END OF EXECUTION CODE AND START OF VAR DEFINITIONS --\n");
 
