@@ -1,4 +1,3 @@
-/* 선언 부분 */
 %{
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
@@ -19,10 +18,10 @@ typedef struct nodeType {
 	int tokenval;
 	struct nodeType *son;
 	struct nodeType *brother;
-	} Node;
+} Node;
 
 #define YYSTYPE Node*
-	
+
 int tsymbolcnt=0;
 int errorcnt=0;
 
@@ -37,19 +36,19 @@ void DFSTree(Node*);
 Node * MakeOPTree(int, Node*, Node*);
 Node * MakeNode(int, int);
 Node * MakeListTree(Node*, Node*);
-void codegen(Node* );
+void codegen(Node*);
 void prtcode(int, int);
 
-void	dwgen();
-int		gentemp();
-void	assgnstmt(int, int);
-void	numassgn(int, int);
-void	addstmt(int, int, int);
-void	substmt(int, int, int);
-int		insertsym();
+void dwgen();
+int gentemp();
+void assgnstmt(int, int);
+void numassgn(int, int);
+void addstmt(int, int, int);
+void substmt(int, int, int);
+int insertsym();
 %}
 
-%token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2 IF ELSE LPAREN RPAREN LBRACE RBRACE LT GT LTE GTE EQ NEQ
+%token ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2 IF ELSE LPAREN RPAREN LBRACE RBRACE LT GT LTE GTE EQ NEQ
 
 
 %%
@@ -58,29 +57,34 @@ int		insertsym();
 program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
 		;
 
-stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
-		|	stmt			{$$=MakeListTree(NULL, $1);}
-		| 	error STMTEND	{ errorcnt++; yyerrok;}
-		;
+stmt_list: stmt_list stmt          { $$=MakeListTree($1, $2); }
+         | stmt                   { $$=MakeListTree(NULL, $1); }
+         ;
 
-stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-		|   IF LPAREN expr LT expr RPAREN LBRACE stmt_list RBRACE {$$ = MakeOPTree(IF, MakeOPTree(LT, $3, $5), $8);}
-		;
+stmt : ID ASSGN expr STMTEND  { $1->token = ID2; $$ = MakeOPTree(ASSGN, $1, $3); }
+     | if_stmt                 { $$ = $1; }
+     ;
 
+if_stmt : IF LPAREN comparison_expr RPAREN LBRACE stmt_list RBRACE  { $$ = MakeOPTree(IF, $3, $6); }
+        | IF LPAREN comparison_expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE  { $$ = MakeOPTree(ELSE, MakeOPTree(IF, $3, $6), $10); }
+        ;
 
+expr : expr ADD term                 { $$=MakeOPTree(ADD, $1, $3); }
+     | expr SUB term                 { $$=MakeOPTree(SUB, $1, $3); }
+     | term
+     ;
 
-expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }	/* 더하기 */
-		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }	/* 빼기 */
-		|	expr MUL term	{ $$=MakeOPTree(MUL, $1, $3); }	/* 곱하기 */
-		|	expr DIV term	{ $$=MakeOPTree(DIV, $1, $3); } /* 나누기 */
-		|	term
-		;
+comparison_expr : expr LT expr        { $$=MakeOPTree(LT, $1, $3); }
+				| expr GT expr        { $$=MakeOPTree(GT, $1, $3); }
+                | expr LTE expr       { $$=MakeOPTree(LTE, $1, $3); }
+                | expr GTE expr       { $$=MakeOPTree(GTE, $1, $3); }
+                | expr EQ expr        { $$=MakeOPTree(EQ, $1, $3); }
+                | expr NEQ expr       { $$=MakeOPTree(NEQ, $1, $3); }
+                ;
 
-term	:	ID		{ /* ID node is created in lex */ }
-		|	NUM		{ /* NUM node is created in lex */ }
-		|	LPAREN expr RPAREN	{ $$ = $2; } /* 괄호 표현식 */
-		;
-
+term : ID        { /* ID node is created in lex */ }
+     | NUM       { /* NUM node is created in lex */ }
+     ;
 
 %%
 
@@ -227,6 +231,8 @@ char tempsym[MAXSYMLEN]="TTCBU";
 	return( insertsym(tempsym) ); // Warning: duplicated symbol is not checked for lazy implementation
 }
 */
+
+
 void dwgen()
 {
 	int i;
@@ -238,4 +244,3 @@ void dwgen()
 		fprintf(fp, "DW %s\n", symtbl[i]);
 	fprintf(fp, "END\n");
 }
-
