@@ -73,9 +73,8 @@ expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
 term	:	ID		{ /* ID node is created in lex */ }
 		|	NUM		{ /* NUM node is created in lex */ }
 		;
-
-
 %%
+
 int main(int argc, char *argv[]) 
 {
 	printf("\nsample CBU compiler v2.0\n");

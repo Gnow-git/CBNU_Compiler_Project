@@ -9,8 +9,8 @@ int insertsym();
 int maxsym=0;
 char s[MAXSYMLEN];
 int temp;
-
 %}
+
 sp		[ \t]
 ws		{sp}+
 nl		\n
@@ -53,4 +53,6 @@ int i;
 	return(0);
 }
 
-yywrap() {}
+yywrap() {
+	return 1;
+}
